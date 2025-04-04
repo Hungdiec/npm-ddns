@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  npm-cloudflare-ddns:
+    image: yourusername/npm-cloudflare-ddns:latest
+    # Alternatively, build from local files:
+    # build: .
+    container_name: npm-cloudflare-ddns
+    restart: unless-stopped
+    environment:
+      - NPM_API_URL=http://nginx-proxy-manager:81
+      - NPM_API_USER=admin@example.com
+      - NPM_API_PASS=changeme
+      - CLOUDFLARE_DOMAINS=example.com:your_cloudflare_token:your_zone_id,example2.com:token2:zone2
+      - UPDATE_INTERVAL=300
+    volumes:
+      - npm-cloudflare-data:/app/data
+    healthcheck:
+      test: ["CMD", "test", "-e", "/app/data/domain_ips.json"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - npm-network
+
+networks:
+  npm-network:
+    external: true
+
+volumes:
+  npm-cloudflare-data:
